@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+  <link rel="manifest" href="/images/manifest.json">
+
+
+  <meta name="msapplication-config" content="/images/browserconfig.xml">
+
+
+
+  <meta name="keywords" content="Hexo, NexT">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="NTT优缺点：  能取模FFT的复数你给我来取个模 没有精度差FFT浮点数的精度怎么也会出一点问题 一般来说常数小由于均为整数操作（虽然取模多）NTT常数小，通常比一大堆浮点运算的FFT要快(通常嘛） 教程和板子网上都有，就不仔细写了 讲一下任意模数NTT 众所周知，为了满足单位根的性质，$NTT$需要质数模数，而且需要质数模数能写成$p=a*2^k+1$的形式 比较常用的有998244353,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="任意模数NTT">
+<meta property="og:url" content="http://yoursite.com/p/dccbe9f5.html">
+<meta property="og:site_name" content="起风了">
+<meta property="og:description" content="NTT优缺点：  能取模FFT的复数你给我来取个模 没有精度差FFT浮点数的精度怎么也会出一点问题 一般来说常数小由于均为整数操作（虽然取模多）NTT常数小，通常比一大堆浮点运算的FFT要快(通常嘛） 教程和板子网上都有，就不仔细写了 讲一下任意模数NTT 众所周知，为了满足单位根的性质，$NTT$需要质数模数，而且需要质数模数能写成$p=a*2^k+1$的形式 比较常用的有998244353,">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2021-03-12T06:27:07.331Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="任意模数NTT">
+<meta name="twitter:description" content="NTT优缺点：  能取模FFT的复数你给我来取个模 没有精度差FFT浮点数的精度怎么也会出一点问题 一般来说常数小由于均为整数操作（虽然取模多）NTT常数小，通常比一大堆浮点运算的FFT要快(通常嘛） 教程和板子网上都有，就不仔细写了 讲一下任意模数NTT 众所周知，为了满足单位根的性质，$NTT$需要质数模数，而且需要质数模数能写成$p=a*2^k+1$的形式 比较常用的有998244353,">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","display_updated":true,"offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/p/dccbe9f5.html">
+
+
+
+
+
+  <title>任意模数NTT | 起风了</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">起风了</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">万物尽头，终将美好</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/p/dccbe9f5.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Pasha">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/tx.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="起风了">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">任意模数NTT</h1>
+        
+
+        <div class="post-meta">
+
+          
+
+          <span class="post-time">
+            
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-04-23T16:20:00+08:00">
+                2020-04-23
+              </time>
+            
+
+            
+
+            
+            
+              <span class="post-updated">
+                &nbsp; | &nbsp; 更新于
+                <time itemprop="dateUpdated" datetime="2021-03-12T14:27:07+08:00" content="2021-03-12">
+                  2021-03-12
+                </time>
+              </span>
+            
+            
+          </span>
+
+          
+
+
+
+          
+            
+          
+
+          
+          
+             <span id="/p/dccbe9f5.html" class="leancloud_visitors" data-flag-title="任意模数NTT">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1.4k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  8
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p> NTT优缺点：</p>
+<p> <strong>能取模</strong><br><del>FFT的复数你给我来取个模</del></p>
+<p><strong>没有精度差</strong><br>FFT浮点数的精度怎么也会出一点问题</p>
+<p><strong>一般来说常数小</strong><br>由于均为整数操作（虽然取模多）<br><del>NTT常数小，通常比一大堆浮点运算的FFT要快</del>(通常嘛）</p>
+<p>教程和板子网上都有，就不仔细写了</p>
+<p>讲一下任意模数NTT</p>
+<p>众所周知，为了满足单位根的性质，$NTT$需要质数模数，而且需要质数模数能写成<br>$p=a*2^k+1$的形式</p>
+<p>比较常用的有998244353,1004535809,469762049，这三个原根都是3</p>
+<p>任意模数咋整好？</p>
+<p>$n$次多项式在模$m$下乘积，最终系数一定不会大于$nm^2$所以找三个模数分别做$NTT$再使用$CRT$合并一下就好了，大概范围是$10^{26}$</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//P4245</span></span><br><span class="line">#pragma GCC optimize(2) </span><br><span class="line">#pragma GCC optimize(3) </span><br><span class="line">#pragma GCC optimize("Ofast")</span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;algorithm&gt;</span><br><span class="line">#include &lt;cstdio&gt;</span><br><span class="line">#include &lt;cstring&gt;</span><br><span class="line">#include &lt;map&gt;</span><br><span class="line">#include &lt;queue&gt;</span><br><span class="line">#include &lt;vector&gt;</span><br><span class="line">#include &lt;set&gt;</span><br><span class="line">using namespace std;</span><br><span class="line">typedef long long ll;</span><br><span class="line">typedef long long LL;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">T</span> <span class="title">rd</span>()</span>&#123;T x=<span class="number">0</span>;ll f=<span class="number">1</span>;char c=getchar();<span class="keyword">while</span>(c&gt;<span class="string">'9'</span>||c&lt;<span class="string">'0'</span>) f=c==<span class="string">'-'</span>?<span class="number">-1</span>:<span class="number">1</span>,c=getchar();<span class="keyword">while</span>(c&gt;=<span class="string">'0'</span>&amp;&amp;c&lt;=<span class="string">'9'</span>)x=x*<span class="number">10</span>+c<span class="number">-48</span>,c=getchar();<span class="keyword">return</span> x*f;&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">void</span> <span class="title">write</span>(<span class="title">T</span> <span class="title">x</span>)</span>&#123;<span class="keyword">if</span>(x&lt;<span class="number">0</span>)&#123;putchar(<span class="string">'-'</span>),write(-x);<span class="keyword">return</span>;&#125;<span class="keyword">if</span>(x&gt;=<span class="number">10</span>)write(x/<span class="number">10</span>);putchar(x%<span class="number">10</span>+<span class="number">48</span>);&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">void</span> <span class="title">write_</span>(<span class="title">T</span> <span class="title">x</span>)</span>&#123;<span class="keyword">if</span>(x&lt;<span class="number">0</span>)&#123;putchar(<span class="string">'-'</span>),write(-x);putchar(<span class="string">' '</span>);<span class="keyword">return</span>;&#125;<span class="keyword">if</span>(x&gt;=<span class="number">10</span>)write(x/<span class="number">10</span>);putchar(x%<span class="number">10</span>+<span class="number">48</span>);putchar(<span class="string">' '</span>);&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">void</span> <span class="title">writeln</span>(<span class="title">T</span> <span class="title">x</span>)</span>&#123;<span class="keyword">if</span>(x&lt;<span class="number">0</span>)&#123;putchar(<span class="string">'-'</span>),write(-x);putchar(<span class="string">'\n'</span>);<span class="keyword">return</span>;&#125;<span class="keyword">if</span>(x&gt;=<span class="number">10</span>)write(x/<span class="number">10</span>);putchar(x%<span class="number">10</span>+<span class="number">48</span>);putchar(<span class="string">'\n'</span>);&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">T</span> <span class="title">min</span>(<span class="title">T</span> <span class="title">a</span>, <span class="title">T</span> <span class="title">b</span>, <span class="title">T</span> <span class="title">c</span>)</span>&#123;<span class="keyword">return</span> min(min(a, b), c);&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">T</span> <span class="title">max</span>(<span class="title">T</span> <span class="title">a</span>, <span class="title">T</span> <span class="title">b</span>, <span class="title">T</span> <span class="title">c</span>)</span>&#123;<span class="keyword">return</span> max(max(a, b), c);&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">T</span> <span class="title">min</span>(<span class="title">T</span> <span class="title">a</span>, <span class="title">T</span> <span class="title">b</span>, <span class="title">T</span> <span class="title">c</span>, <span class="title">T</span> <span class="title">d</span>)</span>&#123;<span class="keyword">return</span> min(min(a, b), min(c, d));&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">T</span> <span class="title">max</span>(<span class="title">T</span> <span class="title">a</span>, <span class="title">T</span> <span class="title">b</span>, <span class="title">T</span> <span class="title">c</span>, <span class="title">T</span> <span class="title">d</span>)</span>&#123;<span class="keyword">return</span> max(max(a, b), max(c, d));&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>, <span class="title">class</span> <span class="title">U</span>&gt; <span class="title">inline</span> <span class="title">void</span> <span class="title">amin</span>(<span class="title">T</span> &amp;<span class="title">x</span>, <span class="title">U</span> <span class="title">y</span>) </span>&#123; <span class="keyword">if</span>(x &gt; y) x = y; &#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>, <span class="title">class</span> <span class="title">U</span>&gt; <span class="title">inline</span> <span class="title">void</span> <span class="title">amax</span>(<span class="title">T</span> &amp;<span class="title">x</span>, <span class="title">U</span> <span class="title">y</span>) </span>&#123; <span class="keyword">if</span>(x &lt; y) x = y; &#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">T</span> <span class="title">fpow</span>(<span class="title">T</span> <span class="title">a</span>, <span class="title">T</span> <span class="title">b</span>, <span class="title">T</span> <span class="title">c</span>)</span>&#123;T ans = <span class="number">1</span>;<span class="keyword">while</span>(b)&#123;<span class="keyword">if</span>(b &amp; <span class="number">1</span>)ans = <span class="number">1</span>ll * ans * a % c; a = <span class="number">1</span>ll * a * a % c;b &gt;&gt;= <span class="number">1</span>;&#125;<span class="keyword">return</span> ans;&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">T</span> <span class="title">fpow</span>(<span class="title">T</span> <span class="title">a</span>, <span class="title">T</span> <span class="title">b</span>)</span>&#123;T ans = <span class="number">1</span>;<span class="keyword">while</span>(b)&#123;<span class="keyword">if</span>(b &amp; <span class="number">1</span>)ans = <span class="number">1</span>ll * ans * a;a = <span class="number">1</span>ll * a * a;b &gt;&gt;= <span class="number">1</span>;&#125; <span class="keyword">return</span> ans;&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">T</span> <span class="title">mul</span>(<span class="title">T</span> <span class="title">a</span>, <span class="title">T</span> <span class="title">b</span>, <span class="title">T</span> <span class="title">p</span>) </span>&#123;LL re = <span class="number">0</span>;<span class="keyword">for</span> (; b; b &gt;&gt;= <span class="number">1</span>, a = (a + a) % p)<span class="keyword">if</span> (b &amp; <span class="number">1</span>) re = (re + a) % p;<span class="keyword">return</span> re;&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">T</span> <span class="title">inv</span>(<span class="title">T</span> <span class="title">a</span>, <span class="title">T</span> <span class="title">b</span>) </span>&#123;<span class="keyword">return</span> fpow(a, b - <span class="number">2</span>, b);&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">T</span> <span class="title">gcd</span>(<span class="title">T</span> <span class="title">a</span>, <span class="title">T</span> <span class="title">b</span>) </span>&#123;<span class="keyword">if</span>(!b) <span class="keyword">return</span> a;<span class="keyword">return</span> gcd(b, a % b);&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">T</span> <span class="title">lcm</span>(<span class="title">T</span> <span class="title">a</span>, <span class="title">T</span> <span class="title">b</span>) </span>&#123;<span class="keyword">return</span> a / gcd(a, b) * b;&#125;</span><br><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>&gt; <span class="title">inline</span> <span class="title">void</span> <span class="title">Exgcd</span>(<span class="title">T</span> <span class="title">a</span>, <span class="title">T</span> <span class="title">b</span>, <span class="title">T</span> &amp;<span class="title">x</span>, <span class="title">T</span> &amp;<span class="title">y</span>) </span>&#123;<span class="keyword">if</span>(b == <span class="number">0</span>)&#123;x = <span class="number">1</span>;y = <span class="number">0</span>;<span class="keyword">return</span>;&#125;Exgcd(b, a % b, x, y);T tp = x;x = y;y = tp - a / b * y;&#125;</span><br><span class="line">#define rdi rd&lt;int&gt;</span><br><span class="line">#define rdl rd&lt;LL&gt;</span><br><span class="line">#define N 400005</span><br><span class="line">int len, len1, len2, mod, lim = <span class="number">1</span>, L = <span class="number">0</span>;</span><br><span class="line">int rev[N], F[N], G[N], A[N][<span class="number">3</span>], B[N][<span class="number">3</span>], ans[N];</span><br><span class="line">int pr[<span class="number">3</span>] = &#123;<span class="number">469762049</span>, <span class="number">998244353</span>, <span class="number">1004535809</span>&#125;;</span><br><span class="line">int inv(int a, int b) &#123;<span class="keyword">return</span> fpow(a, b - <span class="number">2</span>, b);&#125;</span><br><span class="line"><span class="keyword">void</span> NTTA(int u, int lim, int type) &#123;</span><br><span class="line">    int p = pr[u];</span><br><span class="line">    int inv3 = fpow(<span class="number">3</span>, p - <span class="number">2</span>, p);</span><br><span class="line">    <span class="keyword">for</span> (int i = <span class="number">0</span> ; i &lt; lim ; i++ )</span><br><span class="line">        <span class="keyword">if</span> (i &lt; rev[i]) swap(A[i][u], A[rev[i]][u]);</span><br><span class="line">    <span class="keyword">for</span> (int i = <span class="number">1</span> ; i &lt; lim ; i &lt;&lt;= <span class="number">1</span>) &#123;</span><br><span class="line">        int wn = fpow(type == <span class="number">1</span> ? <span class="number">3</span> : inv3, (p - <span class="number">1</span>) / (i &lt;&lt; <span class="number">1</span>), p);</span><br><span class="line">        <span class="keyword">for</span> (int j = <span class="number">0</span> ; j &lt; lim ; j += i &lt;&lt; <span class="number">1</span>) &#123;</span><br><span class="line">            LL w = <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">for</span> (int k = <span class="number">0</span> ; k &lt; i ; k ++, w = (w * wn) % p) &#123;</span><br><span class="line">                int x = A[j + k][u], y = <span class="number">1</span>ll * w * A[j + k + i][u] % p;</span><br><span class="line">                A[j + k][u] = (<span class="number">1</span>ll * x + y + p) % p;</span><br><span class="line">                A[j + k + i][u] = (<span class="number">1</span>ll * x - y + p) % p;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (type == <span class="number">-1</span>) &#123;</span><br><span class="line">        int inv = fpow(lim, p - <span class="number">2</span>, p);</span><br><span class="line">        <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; lim ; i ++) A[i][u] = <span class="number">1</span>ll * A[i][u] * inv % p;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">void</span> NTTB(int u, int lim, int type) &#123;</span><br><span class="line">    int p = pr[u];</span><br><span class="line">    int inv3 = fpow(<span class="number">3</span>, p - <span class="number">2</span>, p);</span><br><span class="line">    <span class="keyword">for</span> (int i = <span class="number">0</span> ; i &lt; lim ; i++ )</span><br><span class="line">        <span class="keyword">if</span> (i &lt; rev[i]) swap(B[i][u], B[rev[i]][u]);</span><br><span class="line">    <span class="keyword">for</span> (int i = <span class="number">1</span> ; i &lt; lim ; i &lt;&lt;= <span class="number">1</span>) &#123;</span><br><span class="line">        int wn = fpow(type == <span class="number">1</span> ? <span class="number">3</span> : inv3, (p - <span class="number">1</span>) / (i &lt;&lt; <span class="number">1</span>), p);</span><br><span class="line">        <span class="keyword">for</span> (int j = <span class="number">0</span> ; j &lt; lim ; j += i &lt;&lt; <span class="number">1</span>) &#123;</span><br><span class="line">            LL w = <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">for</span> (int k = <span class="number">0</span> ; k &lt; i ; k ++, w = (w * wn) % p) &#123;</span><br><span class="line">                int x = B[j + k][u], y = <span class="number">1</span>ll * w * B[j + k + i][u] % p;</span><br><span class="line">                B[j + k][u] = (<span class="number">1</span>ll * x + y + p) % p;</span><br><span class="line">                B[j + k + i][u] = (<span class="number">1</span>ll * x - y + p) % p;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (type == <span class="number">-1</span>) &#123;</span><br><span class="line">        int inv = fpow(lim, p - <span class="number">2</span>, p);</span><br><span class="line">        <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt; lim ; i ++) B[i][u] = <span class="number">1</span>ll * B[i][u] * inv % p;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">void</span> CRT()&#123;</span><br><span class="line">    len = len1 + len2;</span><br><span class="line">    LL a, b, c, t, k, M = <span class="number">1</span>ll * pr[<span class="number">0</span>] * pr[<span class="number">1</span>];</span><br><span class="line">    LL inv1 = inv(pr[<span class="number">1</span>], pr[<span class="number">0</span>]), inv0 = inv(pr[<span class="number">0</span>], pr[<span class="number">1</span>]),inv3 = inv(M % pr[<span class="number">2</span>], pr[<span class="number">2</span>]);</span><br><span class="line">    <span class="keyword">for</span> (int i = <span class="number">0</span>; i &lt;= len ; i++ ) &#123;</span><br><span class="line">        a = A[i][<span class="number">0</span>], b = A[i][<span class="number">1</span>], c = A[i][<span class="number">2</span>];</span><br><span class="line">        t = (mul(a * pr[<span class="number">1</span>] % M, inv1, M) + mul(b * pr[<span class="number">0</span>] % M, inv0, M)) % M;</span><br><span class="line">        k = ((c - t % pr[<span class="number">2</span>]) % pr[<span class="number">2</span>] + pr[<span class="number">2</span>]) % pr[<span class="number">2</span>] * inv3 % pr[<span class="number">2</span>];</span><br><span class="line">        ans[i] = ((k % mod) * (M % mod) % mod + t % mod) % mod;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">int main() &#123;</span><br><span class="line">    len1 = rdi(), len2 = rdi(), mod = rdi();</span><br><span class="line">    <span class="keyword">while</span> (lim &lt;= (len1 + len2)) lim &lt;&lt;= <span class="number">1</span>, L ++;</span><br><span class="line">    <span class="keyword">for</span> (int i = <span class="number">0</span> ; i &lt; lim ; i++ )rev[i] = (rev[i &gt;&gt; <span class="number">1</span>] &gt;&gt; <span class="number">1</span>) | ((i &amp; <span class="number">1</span>) &lt;&lt; (L - <span class="number">1</span>));</span><br><span class="line">    <span class="keyword">for</span> (int i = <span class="number">0</span> ; i &lt;= len1 ; i++ ) F[i] = rdi(), A[i][<span class="number">2</span>] = A[i][<span class="number">1</span>] = A[i][<span class="number">0</span>] = F[i];</span><br><span class="line">    <span class="keyword">for</span> (int i = <span class="number">0</span> ; i &lt;= len2 ; i++ ) G[i] = rdi(), B[i][<span class="number">2</span>] = B[i][<span class="number">1</span>] = B[i][<span class="number">0</span>] = G[i];</span><br><span class="line">    <span class="keyword">for</span> (int u = <span class="number">0</span> ; u &lt;= <span class="number">2</span> ; u++ ) &#123; </span><br><span class="line">        NTTA(u, lim, <span class="number">1</span>), NTTB(u, lim, <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">for</span> (int i = <span class="number">0</span> ; i &lt; lim ; i++ ) A[i][u] = <span class="number">1</span>ll * A[i][u] * B[i][u] % pr[u];</span><br><span class="line">        NTTA(u, lim, <span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    CRT();</span><br><span class="line">    <span class="keyword">for</span> (int i = <span class="number">0</span> ; i &lt;= len ; i++ ) write_(ans[i]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/p/cab1520f.html" rel="next" title="几种常见平衡树">
+                <i class="fa fa-chevron-left"></i> 几种常见平衡树
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/p/5550ac4b.html" rel="prev" title="结束了">
+                结束了 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+ <div id="gitalk-container"></div>
+ 
+  
+  
+
+
+
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/tx.JPG" alt="Pasha">
+            
+              <p class="site-author-name" itemprop="name">Pasha</p>
+              <p class="site-description motion-element" itemprop="description">自能成羽翼，何必仰云梯</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/Rudo1f" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:GuoJL1n@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <!-- modify icon to fire by szw -->
+              <i class="fa fa-history fa-" aria-hidden="true"></i>
+              近期文章
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+              
+                <li class="pull-left" style="white-space:nowrap">
+                    <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-03-11T20:12:07+08:00">
+                      2021-03-11
+                    </time>
+                    <a href="/p/c912e34d.html" title="高等数学小结(1)">高等数学小结(1)</a>
+                    <br>
+                </li>
+              
+                <li class="pull-left" style="white-space:nowrap">
+                    <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-03-10T23:55:15+08:00">
+                      2021-03-10
+                    </time>
+                    <a href="/p/4a67a9bc.html" title="不定积分小总结">不定积分小总结</a>
+                    <br>
+                </li>
+              
+                <li class="pull-left" style="white-space:nowrap">
+                    <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-03T01:50:00+08:00">
+                      2021-01-03
+                    </time>
+                    <a href="/p/5550ac4b.html" title="结束了">结束了</a>
+                    <br>
+                </li>
+              
+                <li class="pull-left" style="white-space:nowrap">
+                    <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-04-23T16:20:00+08:00">
+                      2020-04-23
+                    </time>
+                    <a href="/p/dccbe9f5.html" title="任意模数NTT">任意模数NTT</a>
+                    <br>
+                </li>
+              
+                <li class="pull-left" style="white-space:nowrap">
+                    <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-04-20T18:00:00+08:00">
+                      2020-04-20
+                    </time>
+                    <a href="/p/cab1520f.html" title="几种常见平衡树">几种常见平衡树</a>
+                    <br>
+                </li>
+              
+            </ul>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Pasha</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">7k</span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <!-- <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script> -->
+  <!-- <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> -->
+  <!-- <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> -->
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+    <span class="site-uv">
+      您是第
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      位访客
+    </span>
+  
+
+  
+    <span class="site-pv">
+      总访问量
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'dd102a1f936f70303c1d',
+          clientSecret: 'b645ec87aee1a8418be3e6d229a1c4d62b795b59',
+          repo: 'Rudo1f.github.io',
+          owner: 'Rudo1f',
+          admin: ['Rudo1f'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("8RXEBKve6Bb7DccrEBrYBmO1-gzGzoHsz", "XJbaCVBqHoyDB67zr14WLyrB");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
